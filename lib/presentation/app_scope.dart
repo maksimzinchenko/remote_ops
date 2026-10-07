@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../application/connection_service.dart';
 import '../application/server_profile_service.dart';
+import '../domain/repositories/parameter_value_store.dart';
 import '../domain/repositories/script_catalog.dart';
 
 class AppScope extends InheritedWidget {
@@ -10,6 +11,7 @@ class AppScope extends InheritedWidget {
     super.key,
     required this.profiles,
     required this.scripts,
+    required this.parameters,
     required this.connections,
     required this.execution,
     required super.child,
@@ -17,6 +19,7 @@ class AppScope extends InheritedWidget {
 
   final ServerProfileService profiles;
   final ScriptCatalog scripts;
+  final ParameterValueStore parameters;
   final ConnectionService connections;
   final ScriptExecutionService execution;
 

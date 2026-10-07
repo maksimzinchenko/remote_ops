@@ -9,7 +9,9 @@ import '../domain/entities/authentication.dart';
 import '../domain/entities/execution_result.dart';
 import '../domain/entities/server_profile.dart';
 import '../domain/repositories/execution_journal.dart';
+import '../domain/repositories/parameter_value_store.dart';
 import '../domain/repositories/script_catalog.dart';
+import 'command_binder.dart';
 import '../domain/repositories/secret_storage.dart';
 import '../domain/repositories/server_repository.dart';
 import 'noop_execution_journal.dart';
@@ -147,17 +149,21 @@ class ScriptExecutionService {
   ScriptExecutionService({
     required ConnectionService connections,
     required ScriptCatalog scripts,
+    required ParameterValueStore parameters,
     required AppLogger logger,
     ExecutionJournal? journal,
   })  : _connections = connections,
         _scripts = scripts,
+        _parameters = parameters,
         _logger = logger,
         _journal = journal ?? const NoOpExecutionJournal();
 
   final ConnectionService _connections;
   final ScriptCatalog _scripts;
+  final ParameterValueStore _parameters;
   final AppLogger _logger;
   final ExecutionJournal _journal;
+  final _binder = const CommandBinder();
 
   /// Подключается к одному серверу, выполняет шаги по порядку и ждёт завершения.
   /// Соединение не остаётся открытым после возврата.
@@ -194,6 +200,13 @@ class ScriptExecutionService {
       return run;
     }
 
+    final stored = await _parameters.read(request.profileId, script.id);
+    if (_binder.missing(script.parameters, stored).isNotEmpty) {
+      throw const AppFailure(
+        kind: AppFailureKind.validation,
+        code: AppMessage.parametersRequired,
+      );
+    }
     publish(ScriptRunStatus.running);
     try {
       if (cancellation?.isCancelled == true) {
@@ -206,8 +219,9 @@ class ScriptExecutionService {
         }
         _logger.info('executing command', fields: {'stepId': step.id});
         onStep?.call(step.id, step.name);
+        final command = _binder.bind(step, script.parameters, stored);
         final result = await connection.execute(
-          step.command,
+          command,
           cancellation: cancellation,
           observer: onOutput == null
               ? null

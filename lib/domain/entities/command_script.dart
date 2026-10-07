@@ -8,6 +8,7 @@ class CommandScript {
     required this.stopOnError,
     this.titleKey,
     this.descriptionKey,
+    this.parameters = const [],
   });
 
   final String id;
@@ -16,6 +17,7 @@ class CommandScript {
   final String? titleKey;
   final String? descriptionKey;
   final List<CommandStep> steps;
+  final List<CommandParameter> parameters;
   final bool stopOnError;
 }
 
@@ -31,4 +33,29 @@ class CommandStep {
   final String name;
   final String command;
   final String? titleKey;
+}
+
+enum CommandParameterType { text, number, boolean }
+
+// Схема параметра из каталога. Введённое значение здесь не хранится.
+class CommandParameter {
+  const CommandParameter({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.required,
+    this.labelKey,
+    this.defaultValue,
+    this.trueValue,
+    this.prefix,
+  });
+
+  final String id;
+  final String name;
+  final String? labelKey;
+  final CommandParameterType type;
+  final bool required;
+  final String? defaultValue;
+  final String? trueValue;
+  final String? prefix;
 }

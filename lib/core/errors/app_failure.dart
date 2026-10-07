@@ -26,6 +26,8 @@ abstract class AppMessage {
   static const scriptInterrupted = 'scriptInterrupted';
   static const cancelled = 'cancelled';
   static const keyInvalid = 'keyInvalid';
+  static const parametersRequired = 'parametersRequired';
+  static const invalidParameter = 'invalidParameter';
 }
 
 enum AppFailureKind {

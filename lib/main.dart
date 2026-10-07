@@ -16,7 +16,9 @@ import 'infrastructure/logging/debug_app_logger.dart';
 import 'infrastructure/logging/noop_app_logger.dart';
 import 'infrastructure/security/flutter_secret_storage.dart';
 import 'infrastructure/ssh/ssh_connection_factory.dart';
+import 'infrastructure/storage/file_parameter_value_store.dart';
 import 'infrastructure/storage/file_host_key_store.dart';
+import 'infrastructure/storage/file_parameter_value_store.dart';
 import 'infrastructure/storage/file_server_repository.dart';
 import 'presentation/app_scope.dart';
 import 'presentation/host_key_prompt_dialog.dart';
@@ -39,6 +41,7 @@ Future<void> main() async {
   final servers = FileServerRepository(File(p.join(dataDir.path, 'servers.json')));
   final secrets = FlutterSecretStorage();
   final scripts = AssetScriptCatalog();
+  final parameters = FileParameterValueStore(File(p.join(dataDir.path, 'parameter_values.json')));
   final profiles = ServerProfileService(
     servers: servers,
     secrets: secrets,
@@ -54,6 +57,7 @@ Future<void> main() async {
   final execution = ScriptExecutionService(
     connections: connections,
     scripts: scripts,
+    parameters: parameters,
     logger: logger,
     journal: const NoOpExecutionJournal(),
   );
@@ -62,6 +66,7 @@ Future<void> main() async {
     AppScope(
       profiles: profiles,
       scripts: scripts,
+      parameters: parameters,
       connections: connections,
       execution: execution,
       child: RemoteOpsMaterialApp(navigatorKey: navigatorKey),

@@ -13,7 +13,7 @@ import 'package:remote_ops/domain/entities/command_script.dart';
 import 'package:remote_ops/domain/entities/server_profile.dart';
 import 'package:remote_ops/domain/entities/stored_host_key.dart';
 import 'package:remote_ops/domain/repositories/host_key_store.dart';
-import 'package:remote_ops/domain/repositories/script_catalog.dart';
+import 'package:remote_ops/domain/repositories/parameter_value_store.dart';
 import 'package:remote_ops/domain/repositories/secret_storage.dart';
 import 'package:remote_ops/domain/repositories/server_repository.dart';
 import 'package:remote_ops/presentation/app_scope.dart';
@@ -28,6 +28,14 @@ class _SilentLogger implements AppLogger {
 
   @override
   void warning(String message, {Map<String, Object?> fields = const {}}) {}
+}
+
+class _Parameters implements ParameterValueStore {
+  @override
+  Future<Map<String, String>> read(String profileId, String scriptId) async => const {};
+
+  @override
+  Future<void> save(String profileId, String scriptId, Map<String, String> values) async {}
 }
 
 class _Servers implements ServerRepository {
@@ -106,6 +114,7 @@ void main() {
       AppScope(
         profiles: profiles,
         scripts: _Scripts(),
+        parameters: _Parameters(),
         connections: ConnectionService(
           servers: servers,
           secrets: secrets,
@@ -120,6 +129,7 @@ void main() {
             logger: logger,
           ),
           scripts: _Scripts(),
+          parameters: _Parameters(),
           logger: logger,
         ),
         child: MaterialApp(
