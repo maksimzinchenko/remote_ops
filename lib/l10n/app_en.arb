@@ -1,0 +1,118 @@
+{
+  "@@locale": "en",
+  "appTitle": "Remote Ops",
+  "serversTitle": "Servers",
+  "addServer": "Add",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "save": "Save",
+  "saving": "Saving...",
+  "testConnection": "Test connection",
+  "connecting": "Connecting...",
+  "newServer": "New server",
+  "name": "Name",
+  "host": "Host",
+  "port": "Port",
+  "username": "Username",
+  "password": "Password",
+  "requiredField": "Required field",
+  "invalidPort": "Port must be 1–65535",
+  "emptyServers": "No server profiles yet.\nAdd the first one to connect over SSH.",
+  "deleteProfileTitle": "Delete profile",
+  "deleteProfileBody": "Delete \"{name}\"? The password will be removed from secure storage.",
+  "@deleteProfileBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "serverFallback": "Server",
+  "profileMissing": "Profile not found.",
+  "runHint": "The block runs on this server. The connection opens for the run and closes when it finishes.",
+  "connectionSucceeded": "Connection succeeded. The profile is not saved yet.",
+  "unknownHostKeyTitle": "New server key",
+  "unknownHostKeyBody": "There is no saved fingerprint for {endpoint}. The connection continues only if you trust this key.",
+  "@unknownHostKeyBody": {
+    "placeholders": {
+      "endpoint": {"type": "String"}
+    }
+  },
+  "changedHostKeyTitle": "Server key changed",
+  "changedHostKeyBody": "The fingerprint of {endpoint} does not match the saved one. The connection will not continue silently: this may be a server impersonation.",
+  "@changedHostKeyBody": {
+    "placeholders": {
+      "endpoint": {"type": "String"}
+    }
+  },
+  "trust": "Trust",
+  "trustNewKey": "Trust the new key",
+  "reject": "Reject",
+  "keyType": "Type: {type}",
+  "@keyType": {
+    "placeholders": {
+      "type": {"type": "String"}
+    }
+  },
+  "fingerprint": "Fingerprint",
+  "storedFingerprint": "Saved fingerprint",
+  "presentedFingerprint": "New fingerprint",
+  "statusCompleted": "Completed",
+  "statusFailed": "Failed",
+  "statusCancelled": "Cancelled",
+  "statusRunning": "Connecting and running...",
+  "statusWaiting": "Waiting",
+  "stdout": "stdout",
+  "stderr": "stderr",
+  "exitCode": "Exit code: {code}",
+  "@exitCode": {
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "duration": "Duration: {seconds} s",
+  "@duration": {
+    "placeholders": {
+      "seconds": {"type": "String"}
+    }
+  },
+  "scriptCheckStatusName": "Status check",
+  "scriptCheckStatusDescription": "Uptime, memory and disk. The file is read-only and is not edited in the app.",
+  "scriptIdentityName": "Identity",
+  "scriptIdentityDescription": "User, host and system.",
+  "scriptProcessesName": "Processes",
+  "scriptProcessesDescription": "Top processes by CPU.",
+  "stepUptime": "Uptime",
+  "stepMemory": "Memory",
+  "stepDisk": "Disk",
+  "stepWho": "User and host",
+  "stepPs": "Process list",
+  "failureProfileNotFound": "Server profile not found.",
+  "failurePasswordAuthOnly": "This version supports password authentication only.",
+  "failurePasswordMissing": "The profile password was not found in secure storage.",
+  "failureConnectionFailed": "Could not connect to the server.",
+  "failureScriptNotFound": "Command block not found.",
+  "failureHostKeyRejected": "Connection stopped: the server key was not confirmed.",
+  "failureSaveFailed": "Could not save the server profile.",
+  "failureRequiredFields": "Name, host and username are required.",
+  "failureInvalidPort": "Port must be in the range 1–65535.",
+  "failurePasswordRequired": "Password is required.",
+  "failureNotConnected": "There is no active SSH connection.",
+  "failureTimeout": "The server did not respond in time.",
+  "failureAuthFailed": "Sign-in failed: check the username and password.",
+  "failureHostKeyDenied": "Server key rejected.",
+  "failureHandshake": "SSH handshake failed.",
+  "failureDisconnected": "The server closed the connection.",
+  "failureSshError": "SSH connection error.",
+  "failureOperationFailed": "Could not complete the operation on the server.",
+  "failureDns": "Could not resolve the server name.",
+  "failureRefused": "The server refused the connection.",
+  "failureNetwork": "The network is unreachable.",
+  "failureUnreachable": "The server is unreachable.",
+  "failureCommandFailed": "Command \"{name}\" finished with code {code}.",
+  "@failureCommandFailed": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "code": {"type": "String"}
+    }
+  },
+  "failureScriptInterrupted": "The command block was interrupted."
+}

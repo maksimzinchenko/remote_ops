@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "scripts": [
+    {
+      "id": "check_status",
+      "name": "Проверка состояния",
+      "description": "Время работы, память и диск. Файл только для чтения, в приложении не редактируется.",
+      "stopOnError": true,
+      "steps": [
+        {
+          "id": "uptime",
+          "name": "Uptime",
+          "command": "uptime"
+        },
+        {
+          "id": "memory",
+          "name": "Память",
+          "command": "free -m || vm_stat"
+        },
+        {
+          "id": "disk",
+          "name": "Диск",
+          "command": "df -h"
+        }
+      ]
+    },
+    {
+      "id": "identity",
+      "name": "Идентификация",
+      "description": "Пользователь, хост и система.",
+      "stopOnError": true,
+      "steps": [
+        {
+          "id": "who",
+          "name": "Пользователь и хост",
+          "command": "whoami; hostname; uname -a"
+        }
+      ]
+    },
+    {
+      "id": "processes",
+      "name": "Процессы",
+      "description": "Первые процессы по загрузке CPU.",
+      "stopOnError": true,
+      "steps": [
+        {
+          "id": "ps",
+          "name": "Список процессов",
+          "command": "ps aux --sort=-pcpu | head -n 20"
+        }
+      ]
+    }
+  ]
+}
