@@ -428,6 +428,66 @@ abstract class AppLocalizations {
   /// **'Process list'**
   String get stepPs;
 
+  /// No description provided for @scriptInstallDockerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Docker'**
+  String get scriptInstallDockerName;
+
+  /// No description provided for @scriptInstallDockerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Installs Docker Engine on Linux when it is missing. An existing Docker is left as is.'**
+  String get scriptInstallDockerDescription;
+
+  /// No description provided for @stepInstallDocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Docker Engine'**
+  String get stepInstallDocker;
+
+  /// No description provided for @dockerStatusInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed successfully'**
+  String get dockerStatusInstalled;
+
+  /// No description provided for @dockerStatusAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on the server'**
+  String get dockerStatusAlready;
+
+  /// No description provided for @dockerStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed. Details are in the output below.'**
+  String get dockerStatusFailed;
+
+  /// No description provided for @dockerStatusNeedRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: root or passwordless sudo is required.'**
+  String get dockerStatusNeedRoot;
+
+  /// No description provided for @dockerStatusUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: this Linux distribution is not supported.'**
+  String get dockerStatusUnsupported;
+
+  /// No description provided for @dockerStatusNoDaemon.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: packages are present, but the Docker daemon is not responding.'**
+  String get dockerStatusNoDaemon;
+
+  /// No description provided for @dockerStatusNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: the installer could not be downloaded.'**
+  String get dockerStatusNetwork;
+
   /// No description provided for @failureProfileNotFound.
   ///
   /// In en, this message translates to:

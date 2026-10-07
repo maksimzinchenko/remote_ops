@@ -55,7 +55,36 @@ final _catalog = <String, String Function(AppLocalizations)>{
   'who': (l10n) => l10n.stepWho,
   'stepPs': (l10n) => l10n.stepPs,
   'ps': (l10n) => l10n.stepPs,
+  'scriptInstallDockerName': (l10n) => l10n.scriptInstallDockerName,
+  'install_docker': (l10n) => l10n.scriptInstallDockerName,
+  'scriptInstallDockerDescription': (l10n) => l10n.scriptInstallDockerDescription,
+  'install_docker.description': (l10n) => l10n.scriptInstallDockerDescription,
+  'stepInstallDocker': (l10n) => l10n.stepInstallDocker,
 };
+
+String? remoteOpsStatus(String stdout) {
+  for (final line in stdout.split('\n')) {
+    const prefix = 'REMOTE_OPS_STATUS=';
+    if (line.startsWith(prefix)) {
+      final code = line.substring(prefix.length).trim();
+      return code.isEmpty ? null : code;
+    }
+  }
+  return null;
+}
+
+String? commandStatusText(AppLocalizations l10n, String? code) {
+  return switch (code) {
+    'installed' => l10n.dockerStatusInstalled,
+    'already_installed' => l10n.dockerStatusAlready,
+    'install_failed' => l10n.dockerStatusFailed,
+    'need_root' => l10n.dockerStatusNeedRoot,
+    'unsupported_os' => l10n.dockerStatusUnsupported,
+    'installed_no_daemon' => l10n.dockerStatusNoDaemon,
+    'network_error' => l10n.dockerStatusNetwork,
+    _ => null,
+  };
+}
 
 final _failures = <String, _Text>{
   AppMessage.profileNotFound: (l10n, _) => l10n.failureProfileNotFound,

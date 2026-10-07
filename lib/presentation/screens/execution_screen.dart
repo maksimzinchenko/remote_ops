@@ -171,7 +171,14 @@ class _StepCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text('\$ ${result.command}', style: const TextStyle(fontFamily: 'monospace')),
+            Text(commandPreview(result.command), style: const TextStyle(fontFamily: 'monospace')),
+            if (commandStatusText(l10n, remoteOpsStatus(result.stdout)) != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                commandStatusText(l10n, remoteOpsStatus(result.stdout))!,
+                style: TextStyle(color: ok ? scheme.primary : scheme.error, fontWeight: FontWeight.w600),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(l10n.stdout),
             _Output(text: result.stdout, color: scheme.surfaceContainerHighest),
@@ -186,6 +193,12 @@ class _StepCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String commandPreview(String command) {
+  final first = command.split('\n').first.trim();
+  if (command.length <= 160) return '\$ $first';
+  return '\$ $first …';
 }
 
 class _LiveOutput {

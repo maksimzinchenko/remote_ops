@@ -191,6 +191,41 @@ class AppLocalizationsRu extends AppLocalizations {
   String get stepPs => 'Список процессов';
 
   @override
+  String get scriptInstallDockerName => 'Установка Docker';
+
+  @override
+  String get scriptInstallDockerDescription =>
+      'Ставит Docker Engine на Linux, если его ещё нет. Уже установленный не трогает.';
+
+  @override
+  String get stepInstallDocker => 'Docker Engine';
+
+  @override
+  String get dockerStatusInstalled => 'Успешно установлен';
+
+  @override
+  String get dockerStatusAlready => 'Уже есть на сервере';
+
+  @override
+  String get dockerStatusFailed => 'Ошибка установки. Пояснение в выводе ниже.';
+
+  @override
+  String get dockerStatusNeedRoot =>
+      'Ошибка установки: нужны root или sudo без пароля.';
+
+  @override
+  String get dockerStatusUnsupported =>
+      'Ошибка установки: этот дистрибутив Linux не поддерживается.';
+
+  @override
+  String get dockerStatusNoDaemon =>
+      'Ошибка установки: пакеты есть, но демон Docker не отвечает.';
+
+  @override
+  String get dockerStatusNetwork =>
+      'Ошибка установки: не удалось скачать установщик.';
+
+  @override
   String get failureProfileNotFound => 'Профиль сервера не найден.';
 
   @override
