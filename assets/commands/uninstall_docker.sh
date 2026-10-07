@@ -56,24 +56,42 @@ fi
 failed=0
 if [ -f /etc/alpine-release ]; then
   note "Removing Alpine docker packages."
-  as_root apk del docker docker-cli docker-openrc containerd >/dev/null 2>&1 || true
+  as_root apk del docker docker-cli docker-openrc containerd || failed=1
 elif command -v apt-get >/dev/null 2>&1; then
-  note "Purging Debian/Ubuntu Docker packages and the Docker apt source."
-  as_root apt-get purge -y \
+  note "Purging installed Debian/Ubuntu Docker packages and the Docker apt source."
+  installed=""
+  for pkg in \
     docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-    docker-ce-rootless-extras docker-model-plugin docker.io docker-doc docker-compose \
-    docker-compose-v2 podman-docker >/dev/null 2>&1 || failed=1
-  as_root apt-get autoremove -y >/dev/null 2>&1 || true
+    docker-ce-rootless-extras docker.io docker-doc docker-compose docker-compose-v2 \
+    podman-docker docker-buildx
+  do
+    if dpkg -s "$pkg" >/dev/null 2>&1; then
+      installed="$installed $pkg"
+    fi
+  done
+  owner=$(dpkg -S /usr/bin/docker 2>/dev/null | cut -d: -f1)
+  if [ -n "$owner" ]; then
+    installed="$installed $owner"
+  fi
+  installed=$(printf '%s\n' $installed | awk 'NF && !seen[$0]++')
+  if [ -n "$installed" ]; then
+    note "Packages: $(printf '%s' "$installed" | tr '\n' ' ')"
+    # shellcheck disable=SC2086
+    as_root apt-get purge -y $installed || failed=1
+    as_root apt-get autoremove -y >/dev/null 2>&1 || true
+  else
+    note "No Docker apt packages were registered."
+  fi
 elif command -v dnf >/dev/null 2>&1; then
   note "Removing RPM Docker packages."
   as_root dnf remove -y \
     docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-    docker-ce-rootless-extras docker docker-engine >/dev/null 2>&1 || failed=1
+    docker-ce-rootless-extras docker docker-engine || failed=1
 elif command -v yum >/dev/null 2>&1; then
   note "Removing RPM Docker packages."
   as_root yum remove -y \
     docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-    docker-ce-rootless-extras docker docker-engine >/dev/null 2>&1 || failed=1
+    docker-ce-rootless-extras docker docker-engine || failed=1
 elif [ "$present" -eq 1 ]; then
   status remove_unsupported_os
   note "Docker was found, but this distribution has no package remover."
