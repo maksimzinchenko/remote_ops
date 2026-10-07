@@ -165,6 +165,7 @@ class ScriptExecutionService {
     required CommandBlockRequest request,
     void Function(ScriptRun progress)? onProgress,
     void Function(String stepId, OutputChunk chunk)? onOutput,
+    void Function(String stepId, String stepName)? onStep,
     RunCancellation? cancellation,
   }) async {
     final script = await _scripts.findById(request.scriptId);
@@ -204,6 +205,7 @@ class ScriptExecutionService {
           return await _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
         }
         _logger.info('executing command', fields: {'stepId': step.id});
+        onStep?.call(step.id, step.name);
         final result = await connection.execute(
           step.command,
           cancellation: cancellation,

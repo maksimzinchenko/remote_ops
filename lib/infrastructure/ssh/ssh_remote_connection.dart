@@ -123,7 +123,11 @@ class SshRemoteConnection implements RemoteConnection {
     }
     final startedAt = DateTime.now().toUtc();
     try {
-      final session = await client.execute(command);
+      final session = await client.execute(
+        command,
+        pty: const SSHPtyConfig(width: 120, height: 40),
+        environment: const {'DEBIAN_FRONTEND': 'noninteractive'},
+      );
       final stdout = StringBuffer();
       final stderr = StringBuffer();
       final stdoutDone = Completer<void>();

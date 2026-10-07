@@ -1,4 +1,6 @@
 // Ожидание одного блока на одном сервере. Соединение к этому экрану не привязано.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../application/connection_service.dart';
@@ -29,11 +31,26 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
   bool _started = false;
   final _cancellation = RunCancellation();
   final _live = <String, _LiveOutput>{};
+  String? _activeStepId;
+  String? _activeStepName;
+  DateTime? _stepStarted;
+  Timer? _tick;
 
   @override
   void initState() {
     super.initState();
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _stepStarted != null && (_run == null || _run!.status == ScriptRunStatus.running)) {
+        setState(() {});
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _runScript());
+  }
+
+  @override
+  void dispose() {
+    _tick?.cancel();
+    super.dispose();
   }
 
   Future<void> _runScript() async {
@@ -41,6 +58,14 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
     final run = await AppScope.of(context).execution.run(
           request: CommandBlockRequest(profileId: widget.profileId, scriptId: widget.scriptId),
           cancellation: _cancellation,
+          onStep: (stepId, stepName) {
+            if (!mounted) return;
+            setState(() {
+              _activeStepId = stepId;
+              _activeStepName = stepName;
+              _stepStarted = DateTime.now();
+            });
+          },
           onProgress: (progress) {
             if (mounted) setState(() => _run = progress);
           },
@@ -56,7 +81,12 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
             });
           },
         );
-    if (mounted) setState(() => _run = run);
+    if (mounted) {
+      setState(() {
+        _run = run;
+        _stepStarted = null;
+      });
+    }
   }
 
   @override
@@ -81,15 +111,13 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
         children: [
           _StatusBanner(status: status, run: run, started: _started),
           const SizedBox(height: 16),
-          if (_live.isNotEmpty && (run == null || run.steps.isEmpty)) ...[
-            for (final entry in _live.entries) ...[
-              Text(entry.key),
-              _Output(
-                text: entry.value.stdout.toString(),
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              ),
-              const SizedBox(height: 12),
-            ],
+          if (running && _activeStepId != null) ...[
+            _RunningStep(
+              title: stepTitle(l10n, _activeStepId!, _activeStepName ?? _activeStepId!),
+              elapsed: _stepStarted == null ? Duration.zero : DateTime.now().difference(_stepStarted!),
+              output: _live[_activeStepId!],
+            ),
+            const SizedBox(height: 12),
           ],
           if (run != null)
             for (final step in run.steps) ...[
@@ -97,6 +125,53 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
               const SizedBox(height: 12),
             ],
         ],
+      ),
+    );
+  }
+}
+
+class _RunningStep extends StatelessWidget {
+  const _RunningStep({required this.title, required this.elapsed, required this.output});
+
+  final String title;
+  final Duration elapsed;
+  final _LiveOutput? output;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final clock = '${elapsed.inMinutes}:${(elapsed.inSeconds % 60).toString().padLeft(2, '0')}';
+    final stdout = output?.stdout.toString() ?? '';
+    final stderr = output?.stderr.toString() ?? '';
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: scheme.tertiary),
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+                Text(clock),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.stdout),
+            _Output(text: stdout, color: scheme.surfaceContainerHighest),
+            if (stderr.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(l10n.stderr),
+              _Output(text: stderr, color: scheme.errorContainer),
+            ],
+          ],
+        ),
       ),
     );
   }
