@@ -60,6 +60,11 @@ final _catalog = <String, String Function(AppLocalizations)>{
   'scriptInstallDockerDescription': (l10n) => l10n.scriptInstallDockerDescription,
   'install_docker.description': (l10n) => l10n.scriptInstallDockerDescription,
   'stepInstallDocker': (l10n) => l10n.stepInstallDocker,
+  'scriptUninstallDockerName': (l10n) => l10n.scriptUninstallDockerName,
+  'uninstall_docker': (l10n) => l10n.scriptUninstallDockerName,
+  'scriptUninstallDockerDescription': (l10n) => l10n.scriptUninstallDockerDescription,
+  'uninstall_docker.description': (l10n) => l10n.scriptUninstallDockerDescription,
+  'stepUninstallDocker': (l10n) => l10n.stepUninstallDocker,
 };
 
 String? remoteOpsStatus(String stdout) {
@@ -82,6 +87,11 @@ String? commandStatusText(AppLocalizations l10n, String? code) {
     'unsupported_os' => l10n.dockerStatusUnsupported,
     'installed_no_daemon' => l10n.dockerStatusNoDaemon,
     'network_error' => l10n.dockerStatusNetwork,
+    'removed' => l10n.dockerStatusRemoved,
+    'not_installed' => l10n.dockerStatusNotInstalled,
+    'remove_failed' => l10n.dockerStatusRemoveFailed,
+    'remove_need_root' => l10n.dockerStatusRemoveNeedRoot,
+    'remove_unsupported_os' => l10n.dockerStatusRemoveUnsupported,
     _ => null,
   };
 }

@@ -488,6 +488,54 @@ abstract class AppLocalizations {
   /// **'Installation failed: the installer could not be downloaded.'**
   String get dockerStatusNetwork;
 
+  /// No description provided for @scriptUninstallDockerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Docker'**
+  String get scriptUninstallDockerName;
+
+  /// No description provided for @scriptUninstallDockerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops Docker, deletes images, volumes and installer files, then removes the packages.'**
+  String get scriptUninstallDockerDescription;
+
+  /// No description provided for @stepUninstallDocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Docker Engine'**
+  String get stepUninstallDocker;
+
+  /// No description provided for @dockerStatusRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed. Images, volumes and temporary files were deleted.'**
+  String get dockerStatusRemoved;
+
+  /// No description provided for @dockerStatusNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Docker is not on the server.'**
+  String get dockerStatusNotInstalled;
+
+  /// No description provided for @dockerStatusRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed. Details are in the output below.'**
+  String get dockerStatusRemoveFailed;
+
+  /// No description provided for @dockerStatusRemoveNeedRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed: root or passwordless sudo is required.'**
+  String get dockerStatusRemoveNeedRoot;
+
+  /// No description provided for @dockerStatusRemoveUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed: this Linux distribution is not supported.'**
+  String get dockerStatusRemoveUnsupported;
+
   /// No description provided for @failureProfileNotFound.
   ///
   /// In en, this message translates to:

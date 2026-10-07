@@ -226,6 +226,35 @@ class AppLocalizationsRu extends AppLocalizations {
       'Ошибка установки: не удалось скачать установщик.';
 
   @override
+  String get scriptUninstallDockerName => 'Удаление Docker';
+
+  @override
+  String get scriptUninstallDockerDescription =>
+      'Останавливает Docker, удаляет образы, тома и временные файлы, затем снимает пакеты.';
+
+  @override
+  String get stepUninstallDocker => 'Удаление Docker Engine';
+
+  @override
+  String get dockerStatusRemoved =>
+      'Удалён. Образы, тома и временные файлы стёрты.';
+
+  @override
+  String get dockerStatusNotInstalled => 'Docker на сервере нет.';
+
+  @override
+  String get dockerStatusRemoveFailed =>
+      'Ошибка удаления. Пояснение в выводе ниже.';
+
+  @override
+  String get dockerStatusRemoveNeedRoot =>
+      'Ошибка удаления: нужны root или sudo без пароля.';
+
+  @override
+  String get dockerStatusRemoveUnsupported =>
+      'Ошибка удаления: этот дистрибутив Linux не поддерживается.';
+
+  @override
   String get failureProfileNotFound => 'Профиль сервера не найден.';
 
   @override

@@ -9,6 +9,7 @@ REMOTE_OPS_STATUS=already_installed
 Docker version 27.0.0
 ''';
     expect(remoteOpsStatus(stdout), 'already_installed');
+    expect(remoteOpsStatus('REMOTE_OPS_STATUS=removed\n'), 'removed');
     expect(remoteOpsStatus('no marker\n'), isNull);
   });
 }
