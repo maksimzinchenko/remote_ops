@@ -1,29 +1,30 @@
 // Фабрика одного короткого SSH-соединения, не пула сессий.
-import '../../application/host_key_coordinator.dart';
 import '../../core/logging/app_logger.dart';
+import '../../domain/connections/host_key_verifier.dart';
 import '../../domain/connections/remote_connection.dart';
 import '../../domain/connections/remote_connection_factory.dart';
+import '../../domain/connections/resolved_credentials.dart';
 import '../../domain/entities/server_profile.dart';
 import 'ssh_remote_connection.dart';
 
 class SshConnectionFactory implements RemoteConnectionFactory {
   SshConnectionFactory({
-    required HostKeyCoordinator hostKeys,
+    required HostKeyVerifier hostKeys,
     required AppLogger logger,
   })  : _hostKeys = hostKeys,
         _logger = logger;
 
-  final HostKeyCoordinator _hostKeys;
+  final HostKeyVerifier _hostKeys;
   final AppLogger _logger;
 
   @override
   Future<RemoteConnection> open({
     required ServerProfile profile,
-    required String password,
+    required ResolvedCredentials credentials,
   }) async {
     return SshRemoteConnection(
       profile: profile,
-      password: password,
+      credentials: credentials,
       logger: _logger,
       onVerifyHostKey: ({
         required String host,

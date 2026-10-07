@@ -8,6 +8,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../app_scope.dart';
 import '../l10n/app_text.dart';
 import 'execution_screen.dart';
+import 'server_form_screen.dart';
 
 class ServerDetailScreen extends StatefulWidget {
   const ServerDetailScreen({super.key, required this.profileId});
@@ -32,9 +33,7 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
   Future<void> _load() async {
     final scope = AppScope.of(context);
     try {
-      final profile = await scope.profiles.list().then(
-            (items) => items.where((item) => item.id == widget.profileId).firstOrNull,
-          );
+      final profile = await scope.profiles.find(widget.profileId);
       final scripts = await scope.scripts.list();
       if (!mounted) return;
       setState(() {
@@ -53,7 +52,24 @@ class _ServerDetailScreenState extends State<ServerDetailScreen> {
     final l10n = AppLocalizations.of(context);
     final profile = _profile;
     return Scaffold(
-      appBar: AppBar(title: Text(profile?.name ?? l10n.serverFallback)),
+      appBar: AppBar(
+        title: Text(profile?.name ?? l10n.serverFallback),
+        actions: [
+          if (profile != null)
+            IconButton(
+              tooltip: l10n.save,
+              icon: const Icon(Icons.edit_outlined),
+              onPressed: () async {
+                final saved = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(builder: (_) => ServerFormScreen(profileId: profile.id)),
+                );
+                if (saved == true) {
+                  await _load();
+                }
+              },
+            ),
+        ],
+      ),
       body: _error != null
           ? Center(child: Text(failureText(l10n, _error!.code, _error!.params)))
           : profile == null

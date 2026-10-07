@@ -9,7 +9,9 @@ import '../app_scope.dart';
 import '../l10n/app_text.dart';
 
 class ServerFormScreen extends StatefulWidget {
-  const ServerFormScreen({super.key});
+  const ServerFormScreen({super.key, this.profileId});
+
+  final String? profileId;
 
   @override
   State<ServerFormScreen> createState() => _ServerFormScreenState();
@@ -25,6 +27,32 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
   bool _saving = false;
   bool _testing = false;
   bool _obscure = true;
+  bool _loaded = false;
+
+  bool get _editing => widget.profileId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    final id = widget.profileId;
+    if (id == null) {
+      setState(() => _loaded = true);
+      return;
+    }
+    final profile = await AppScope.of(context).profiles.find(id);
+    if (!mounted) return;
+    if (profile != null) {
+      _name.text = profile.name;
+      _host.text = profile.host;
+      _port.text = '${profile.port}';
+      _username.text = profile.username;
+    }
+    setState(() => _loaded = true);
+  }
 
   @override
   void dispose() {
@@ -36,8 +64,12 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
     super.dispose();
   }
 
-  ServerDraft? _draft() {
+  ServerDraft? _draft({required bool passwordRequired}) {
     if (_formKey.currentState?.validate() != true) {
+      return null;
+    }
+    if (passwordRequired && _password.text.isEmpty) {
+      _show(AppLocalizations.of(context).failurePasswordRequired);
       return null;
     }
     return ServerDraft(
@@ -50,11 +82,13 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
   }
 
   Future<void> _save() async {
-    final draft = _draft();
+    final draft = _draft(passwordRequired: !_editing);
     if (draft == null) return;
     setState(() => _saving = true);
     try {
-      await AppScope.of(context).profiles.create(draft);
+      await widget.profileId == null
+          ? AppScope.of(context).profiles.create(draft)
+          : AppScope.of(context).profiles.update(widget.profileId!, draft);
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } on AppFailure catch (failure) {
@@ -66,7 +100,7 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
   }
 
   Future<void> _test() async {
-    final draft = _draft();
+    final draft = _draft(passwordRequired: true);
     if (draft == null) return;
     setState(() => _testing = true);
     try {
@@ -91,8 +125,10 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
     final l10n = AppLocalizations.of(context);
     final busy = _saving || _testing;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.newServer)),
-      body: Form(
+      appBar: AppBar(title: Text(_editing ? l10n.serverFallback : l10n.newServer)),
+      body: !_loaded
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -142,7 +178,7 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
                 ),
               ),
               obscureText: _obscure,
-              validator: (value) => _required(value, l10n),
+              validator: (value) => _editing ? null : _required(value, l10n),
             ),
             const SizedBox(height: 24),
             FilledButton(

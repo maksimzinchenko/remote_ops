@@ -1,29 +1,31 @@
 // Код сообщения для перевода в UI. Слои ниже не знают язык пользователя.
-enum AppMessage {
-  profileNotFound,
-  passwordAuthOnly,
-  passwordMissing,
-  connectionFailed,
-  scriptNotFound,
-  hostKeyRejected,
-  saveFailed,
-  requiredFields,
-  invalidPort,
-  passwordRequired,
-  notConnected,
-  timeout,
-  authFailed,
-  hostKeyDenied,
-  handshake,
-  disconnected,
-  sshError,
-  operationFailed,
-  dnsError,
-  connectionRefused,
-  networkUnreachable,
-  unreachable,
-  commandFailed,
-  scriptInterrupted,
+abstract class AppMessage {
+  static const profileNotFound = 'profileNotFound';
+  static const passwordAuthOnly = 'passwordAuthOnly';
+  static const passwordMissing = 'passwordMissing';
+  static const connectionFailed = 'connectionFailed';
+  static const scriptNotFound = 'scriptNotFound';
+  static const hostKeyRejected = 'hostKeyRejected';
+  static const saveFailed = 'saveFailed';
+  static const requiredFields = 'requiredFields';
+  static const invalidPort = 'invalidPort';
+  static const passwordRequired = 'passwordRequired';
+  static const notConnected = 'notConnected';
+  static const timeout = 'timeout';
+  static const authFailed = 'authFailed';
+  static const hostKeyDenied = 'hostKeyDenied';
+  static const handshake = 'handshake';
+  static const disconnected = 'disconnected';
+  static const sshError = 'sshError';
+  static const operationFailed = 'operationFailed';
+  static const dnsError = 'dnsError';
+  static const connectionRefused = 'connectionRefused';
+  static const networkUnreachable = 'networkUnreachable';
+  static const unreachable = 'unreachable';
+  static const commandFailed = 'commandFailed';
+  static const scriptInterrupted = 'scriptInterrupted';
+  static const cancelled = 'cancelled';
+  static const keyInvalid = 'keyInvalid';
 }
 
 enum AppFailureKind {
@@ -37,6 +39,7 @@ enum AppFailureKind {
   disconnected,
   command,
   storage,
+  cancelled,
   unknown,
 }
 
@@ -50,7 +53,7 @@ class AppFailure implements Exception {
   });
 
   final AppFailureKind kind;
-  final AppMessage code;
+  final String code;
   final Map<String, String> params;
   final String? debugDetail;
 

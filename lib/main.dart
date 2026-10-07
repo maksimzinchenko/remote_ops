@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'application/connection_service.dart';
 import 'application/host_key_coordinator.dart';
+import 'application/noop_execution_journal.dart';
 import 'application/server_profile_service.dart';
 import 'infrastructure/commands/asset_script_catalog.dart';
 import 'infrastructure/logging/debug_app_logger.dart';
@@ -51,6 +52,7 @@ Future<void> main() async {
     connections: connections,
     scripts: scripts,
     logger: logger,
+    journal: const NoOpExecutionJournal(),
   );
 
   runApp(

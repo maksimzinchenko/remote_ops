@@ -1,14 +1,18 @@
 // Одноразовое подключение: проверка логина или один блок команд на одном сервере.
 import '../core/errors/app_failure.dart';
 import '../core/logging/app_logger.dart';
+import '../domain/connections/execution_control.dart';
 import '../domain/connections/remote_connection.dart';
 import '../domain/connections/remote_connection_factory.dart';
+import '../domain/connections/resolved_credentials.dart';
 import '../domain/entities/authentication.dart';
-import '../domain/entities/server_profile.dart';
 import '../domain/entities/execution_result.dart';
+import '../domain/entities/server_profile.dart';
+import '../domain/repositories/execution_journal.dart';
 import '../domain/repositories/script_catalog.dart';
 import '../domain/repositories/secret_storage.dart';
 import '../domain/repositories/server_repository.dart';
+import 'noop_execution_journal.dart';
 import 'server_profile_service.dart';
 
 class ConnectionService {
@@ -29,13 +33,13 @@ class ConnectionService {
 
   Future<RemoteConnection> connect(String profileId) async {
     final profile = await _requireProfile(profileId);
-    final password = await _requirePassword(profile);
+    final credentials = await _requireCredentials(profile);
     _logger.info(
       'connecting',
       fields: {'host': profile.host, 'port': profile.port, 'username': profile.username},
     );
     try {
-      final connection = await _connections.open(profile: profile, password: password);
+      final connection = await _connections.open(profile: profile, credentials: credentials);
       await connection.connect();
       _logger.info('connected', fields: {'host': profile.host, 'port': profile.port});
       return connection;
@@ -59,7 +63,10 @@ class ConnectionService {
     _logger.info('testing connection', fields: {'host': profile.host, 'port': profile.port});
     RemoteConnection? connection;
     try {
-      connection = await _connections.open(profile: profile, password: draft.password);
+      connection = await _connections.open(
+        profile: profile,
+        credentials: PasswordCredentials(draft.password),
+      );
       await connection.connect();
     } catch (error, stackTrace) {
       throw _asFailure(error, stackTrace, profile);
@@ -79,22 +86,34 @@ class ConnectionService {
     return profile;
   }
 
-  Future<String> _requirePassword(ServerProfile profile) async {
+  Future<ResolvedCredentials> _requireCredentials(ServerProfile profile) async {
     final auth = profile.authentication;
-    if (auth is! PasswordAuthentication) {
-      throw const AppFailure(
-        kind: AppFailureKind.validation,
-        code: AppMessage.passwordAuthOnly,
-      );
+    if (auth is PasswordAuthentication) {
+      final password = await _secrets.get(auth.secretKey);
+      if (password == null || password.isEmpty) {
+        throw const AppFailure(
+          kind: AppFailureKind.storage,
+          code: AppMessage.passwordMissing,
+        );
+      }
+      return PasswordCredentials(password);
     }
-    final password = await _secrets.get(auth.secretKey);
-    if (password == null || password.isEmpty) {
-      throw const AppFailure(
-        kind: AppFailureKind.storage,
-        code: AppMessage.passwordMissing,
-      );
+    if (auth is PrivateKeyAuthentication) {
+      final privateKey = await _secrets.get(auth.privateKeySecretKey);
+      if (privateKey == null || privateKey.isEmpty) {
+        throw const AppFailure(
+          kind: AppFailureKind.storage,
+          code: AppMessage.passwordMissing,
+        );
+      }
+      final passphraseKey = auth.passphraseSecretKey;
+      final passphrase = passphraseKey == null ? null : await _secrets.get(passphraseKey);
+      return PrivateKeyCredentials(privateKeyPem: privateKey, passphrase: passphrase);
     }
-    return password;
+    throw const AppFailure(
+      kind: AppFailureKind.validation,
+      code: AppMessage.passwordAuthOnly,
+    );
   }
 
   AppFailure _asFailure(Object error, StackTrace stackTrace, ServerProfile profile) {
@@ -117,8 +136,6 @@ class ConnectionService {
 
 /// Запуск блока команд на одном сервере.
 /// Соединение открывается здесь и закрывается до возврата: UI его не держит.
-/// Параллельный запуск на нескольких серверах позже можно собрать из таких же
-/// независимых запросов, каждый со своим коротким соединением.
 class CommandBlockRequest {
   const CommandBlockRequest({required this.profileId, required this.scriptId});
 
@@ -131,19 +148,24 @@ class ScriptExecutionService {
     required ConnectionService connections,
     required ScriptCatalog scripts,
     required AppLogger logger,
+    ExecutionJournal? journal,
   })  : _connections = connections,
         _scripts = scripts,
-        _logger = logger;
+        _logger = logger,
+        _journal = journal ?? const NoOpExecutionJournal();
 
   final ConnectionService _connections;
   final ScriptCatalog _scripts;
   final AppLogger _logger;
+  final ExecutionJournal _journal;
 
   /// Подключается к одному серверу, выполняет шаги по порядку и ждёт завершения.
   /// Соединение не остаётся открытым после возврата.
   Future<ScriptRun> run({
     required CommandBlockRequest request,
     void Function(ScriptRun progress)? onProgress,
+    void Function(String stepId, OutputChunk chunk)? onOutput,
+    RunCancellation? cancellation,
   }) async {
     final script = await _scripts.findById(request.scriptId);
     if (script == null) {
@@ -156,7 +178,7 @@ class ScriptExecutionService {
     RemoteConnection? connection;
     ScriptRun publish(
       ScriptRunStatus status, {
-      AppMessage? failureCode,
+      String? failureCode,
       Map<String, String> failureParams = const {},
     }) {
       final run = ScriptRun(
@@ -173,41 +195,76 @@ class ScriptExecutionService {
 
     publish(ScriptRunStatus.running);
     try {
+      if (cancellation?.isCancelled == true) {
+        return _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
+      }
       connection = await _connections.connect(request.profileId);
       for (final step in script.steps) {
-        _logger.info('executing command', fields: {'commandName': step.name});
-        final result = await connection.execute(step.command);
+        if (cancellation?.isCancelled == true) {
+          return _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
+        }
+        _logger.info('executing command', fields: {'stepId': step.id});
+        final result = await connection.execute(
+          step.command,
+          cancellation: cancellation,
+          observer: onOutput == null
+              ? null
+              : _StepObserver((chunk) => onOutput(step.id, chunk)),
+        );
         steps.add(
           ScriptStepResult(stepId: step.id, stepName: step.name, result: result),
         );
         _logger.info(
           'command finished',
           fields: {
-            'commandName': step.name,
+            'stepId': step.id,
             'exitCode': result.exitCode ?? -1,
             'durationMs': result.duration.inMilliseconds,
           },
         );
         if (!result.success && script.stopOnError) {
-          return publish(
-            ScriptRunStatus.failed,
-            failureCode: AppMessage.commandFailed,
-            failureParams: {
-              'name': step.name,
-              'code': '${result.exitCode ?? '—'}',
-            },
+          return _finish(
+            publish(
+              ScriptRunStatus.failed,
+              failureCode: AppMessage.commandFailed,
+              failureParams: {
+                'name': step.name,
+                'code': '${result.exitCode ?? '—'}',
+              },
+            ),
           );
         }
         publish(ScriptRunStatus.running);
       }
-      return publish(ScriptRunStatus.completed);
+      return _finish(publish(ScriptRunStatus.completed));
     } on AppFailure catch (failure) {
-      return publish(ScriptRunStatus.failed, failureCode: failure.code, failureParams: failure.params);
+      final cancelled = failure.code == AppMessage.cancelled || cancellation?.isCancelled == true;
+      return _finish(
+        publish(
+          cancelled ? ScriptRunStatus.cancelled : ScriptRunStatus.failed,
+          failureCode: cancelled ? AppMessage.cancelled : failure.code,
+          failureParams: failure.params,
+        ),
+      );
     } catch (error, stackTrace) {
       _logger.error('script failed', error: error, stackTrace: stackTrace);
-      return publish(ScriptRunStatus.failed, failureCode: AppMessage.scriptInterrupted);
+      return _finish(publish(ScriptRunStatus.failed, failureCode: AppMessage.scriptInterrupted));
     } finally {
       await connection?.disconnect();
     }
   }
+
+  Future<ScriptRun> _finish(ScriptRun run) async {
+    await _journal.record(run);
+    return run;
+  }
+}
+
+class _StepObserver implements ExecutionObserver {
+  _StepObserver(this._onOutput);
+
+  final void Function(OutputChunk chunk) _onOutput;
+
+  @override
+  void onOutput(OutputChunk chunk) => _onOutput(chunk);
 }

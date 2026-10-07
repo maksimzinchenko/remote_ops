@@ -8,6 +8,7 @@ import 'package:remote_ops/application/server_profile_service.dart';
 import 'package:remote_ops/core/logging/app_logger.dart';
 import 'package:remote_ops/domain/connections/remote_connection.dart';
 import 'package:remote_ops/domain/connections/remote_connection_factory.dart';
+import 'package:remote_ops/domain/connections/resolved_credentials.dart';
 import 'package:remote_ops/domain/entities/command_script.dart';
 import 'package:remote_ops/domain/entities/server_profile.dart';
 import 'package:remote_ops/domain/entities/stored_host_key.dart';
@@ -82,7 +83,10 @@ class _Scripts implements ScriptCatalog {
 
 class _Connections implements RemoteConnectionFactory {
   @override
-  Future<RemoteConnection> open({required ServerProfile profile, required String password}) {
+  Future<RemoteConnection> open({
+    required ServerProfile profile,
+    required ResolvedCredentials credentials,
+  }) {
     throw UnimplementedError();
   }
 }
