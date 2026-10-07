@@ -3,6 +3,7 @@
 # Печатает REMOTE_OPS_STATUS=... — это код результата для приложения, не часть команды.
 status() { printf 'REMOTE_OPS_STATUS=%s\n' "$1"; }
 note() { printf '%s\n' "$1"; }
+export DEBIAN_FRONTEND=noninteractive
 
 if [ "$(uname -s 2>/dev/null)" != "Linux" ]; then
   status unsupported_os

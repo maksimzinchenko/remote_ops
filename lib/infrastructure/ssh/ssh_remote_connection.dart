@@ -123,11 +123,7 @@ class SshRemoteConnection implements RemoteConnection {
     }
     final startedAt = DateTime.now().toUtc();
     try {
-      final session = await client.execute(
-        command,
-        pty: const SSHPtyConfig(width: 120, height: 40),
-        environment: const {'DEBIAN_FRONTEND': 'noninteractive'},
-      );
+      final session = await _openSession(client, command);
       final stdout = StringBuffer();
       final stderr = StringBuffer();
       final stdoutDone = Completer<void>();
@@ -173,6 +169,15 @@ class SshRemoteConnection implements RemoteConnection {
         rethrow;
       }
       throw mapSshError(error);
+    }
+  }
+
+  Future<SSHSession> _openSession(SSHClient client, String command) async {
+    try {
+      return await client.execute(command, pty: const SSHPtyConfig(width: 120, height: 40));
+    } on SSHChannelRequestError catch (error) {
+      _logger.warning('pty refused, running without a terminal', fields: {'detail': '$error'});
+      return client.execute(command);
     }
   }
 
