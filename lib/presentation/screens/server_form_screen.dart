@@ -85,10 +85,14 @@ class _ServerFormScreenState extends State<ServerFormScreen> {
     final draft = _draft(passwordRequired: !_editing);
     if (draft == null) return;
     setState(() => _saving = true);
+    final profiles = AppScope.of(context).profiles;
+    final id = widget.profileId;
     try {
-      await widget.profileId == null
-          ? AppScope.of(context).profiles.create(draft)
-          : AppScope.of(context).profiles.update(widget.profileId!, draft);
+      if (id == null) {
+        await profiles.create(draft);
+      } else {
+        await profiles.update(id, draft);
+      }
       if (!mounted) return;
       Navigator.of(context).pop(true);
     } on AppFailure catch (failure) {

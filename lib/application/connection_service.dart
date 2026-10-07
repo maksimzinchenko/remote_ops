@@ -196,12 +196,12 @@ class ScriptExecutionService {
     publish(ScriptRunStatus.running);
     try {
       if (cancellation?.isCancelled == true) {
-        return _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
+        return await _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
       }
       connection = await _connections.connect(request.profileId);
       for (final step in script.steps) {
         if (cancellation?.isCancelled == true) {
-          return _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
+          return await _finish(publish(ScriptRunStatus.cancelled, failureCode: AppMessage.cancelled));
         }
         _logger.info('executing command', fields: {'stepId': step.id});
         final result = await connection.execute(
@@ -223,7 +223,7 @@ class ScriptExecutionService {
           },
         );
         if (!result.success && script.stopOnError) {
-          return _finish(
+          return await _finish(
             publish(
               ScriptRunStatus.failed,
               failureCode: AppMessage.commandFailed,
@@ -236,10 +236,10 @@ class ScriptExecutionService {
         }
         publish(ScriptRunStatus.running);
       }
-      return _finish(publish(ScriptRunStatus.completed));
+      return await _finish(publish(ScriptRunStatus.completed));
     } on AppFailure catch (failure) {
       final cancelled = failure.code == AppMessage.cancelled || cancellation?.isCancelled == true;
-      return _finish(
+      return await _finish(
         publish(
           cancelled ? ScriptRunStatus.cancelled : ScriptRunStatus.failed,
           failureCode: cancelled ? AppMessage.cancelled : failure.code,
@@ -248,7 +248,7 @@ class ScriptExecutionService {
       );
     } catch (error, stackTrace) {
       _logger.error('script failed', error: error, stackTrace: stackTrace);
-      return _finish(publish(ScriptRunStatus.failed, failureCode: AppMessage.scriptInterrupted));
+      return await _finish(publish(ScriptRunStatus.failed, failureCode: AppMessage.scriptInterrupted));
     } finally {
       await connection?.disconnect();
     }
