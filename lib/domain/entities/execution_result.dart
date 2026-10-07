@@ -1,6 +1,4 @@
 // Итог команды и всего блока: вывод, код выхода, длительность.
-import '../../core/errors/app_failure.dart';
-
 class ExecutionResult {
   const ExecutionResult({
     required this.command,
@@ -51,6 +49,8 @@ class ScriptRun {
   final String scriptName;
   final ScriptRunStatus status;
   final List<ScriptStepResult> steps;
-  final AppMessage? failureCode;
+
+  /// Код сообщения. Неизвестный код UI показывает общим текстом, без нового switch.
+  final String? failureCode;
   final Map<String, String> failureParams;
 }

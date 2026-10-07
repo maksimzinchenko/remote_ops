@@ -1,5 +1,6 @@
-// Сохранённый сервер без секретов. Модель допускает и другие способы входа.
+// Сохранённый сервер без секретов. Формат файла собирает infrastructure-кодек.
 import 'authentication.dart';
+import 'connection_options.dart';
 
 class ServerProfile {
   const ServerProfile({
@@ -11,6 +12,7 @@ class ServerProfile {
     required this.authentication,
     required this.createdAt,
     required this.updatedAt,
+    this.options = const ConnectionOptions(),
   });
 
   final String id;
@@ -21,6 +23,7 @@ class ServerProfile {
   final Authentication authentication;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final ConnectionOptions options;
 
   ServerProfile copyWith({
     String? name,
@@ -29,6 +32,7 @@ class ServerProfile {
     String? username,
     Authentication? authentication,
     DateTime? updatedAt,
+    ConnectionOptions? options,
   }) {
     return ServerProfile(
       id: id,
@@ -39,50 +43,7 @@ class ServerProfile {
       authentication: authentication ?? this.authentication,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      options: options ?? this.options,
     );
   }
-
-  Map<String, Object?> toJson() => {
-        'id': id,
-        'name': name,
-        'host': host,
-        'port': port,
-        'username': username,
-        'authentication': authentication.toJson(),
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        'updatedAt': updatedAt.toUtc().toIso8601String(),
-      };
-
-  static ServerProfile fromJson(Map<String, Object?> json) {
-    final auth = json['authentication'];
-    if (auth is! Map) {
-      throw const FormatException('server profile has no authentication');
-    }
-    return ServerProfile(
-      id: _requiredString(json, 'id'),
-      name: _requiredString(json, 'name'),
-      host: _requiredString(json, 'host'),
-      port: _requiredPort(json['port']),
-      username: _requiredString(json, 'username'),
-      authentication: Authentication.fromJson(Map<String, Object?>.from(auth)),
-      createdAt: DateTime.parse(_requiredString(json, 'createdAt')).toUtc(),
-      updatedAt: DateTime.parse(_requiredString(json, 'updatedAt')).toUtc(),
-    );
-  }
-}
-
-String _requiredString(Map<String, Object?> json, String key) {
-  final value = json[key];
-  if (value is! String || value.trim().isEmpty) {
-    throw FormatException('server profile field $key is missing');
-  }
-  return value;
-}
-
-int _requiredPort(Object? value) {
-  final port = value is int ? value : int.tryParse('$value');
-  if (port == null || port < 1 || port > 65535) {
-    throw const FormatException('server profile port is invalid');
-  }
-  return port;
 }

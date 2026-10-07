@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../application/connection_service.dart';
+import '../../domain/connections/execution_control.dart';
 import '../../domain/entities/execution_result.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../app_scope.dart';
@@ -26,6 +27,8 @@ class ExecutionScreen extends StatefulWidget {
 class _ExecutionScreenState extends State<ExecutionScreen> {
   ScriptRun? _run;
   bool _started = false;
+  final _cancellation = RunCancellation();
+  final _live = <String, _LiveOutput>{};
 
   @override
   void initState() {
@@ -37,8 +40,20 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
     setState(() => _started = true);
     final run = await AppScope.of(context).execution.run(
           request: CommandBlockRequest(profileId: widget.profileId, scriptId: widget.scriptId),
+          cancellation: _cancellation,
           onProgress: (progress) {
             if (mounted) setState(() => _run = progress);
+          },
+          onOutput: (stepId, chunk) {
+            if (!mounted) return;
+            setState(() {
+              final live = _live.putIfAbsent(stepId, _LiveOutput.new);
+              if (chunk.channel == OutputChannel.stdout) {
+                live.stdout.write(chunk.text);
+              } else {
+                live.stderr.write(chunk.text);
+              }
+            });
           },
         );
     if (mounted) setState(() => _run = run);
@@ -48,13 +63,34 @@ class _ExecutionScreenState extends State<ExecutionScreen> {
   Widget build(BuildContext context) {
     final run = _run;
     final status = run?.status;
+    final l10n = AppLocalizations.of(context);
+    final running = status == null || status == ScriptRunStatus.running;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.scriptName)),
+      appBar: AppBar(
+        title: Text(widget.scriptName),
+        actions: [
+          if (running && _started)
+            TextButton(
+              onPressed: _cancellation.isCancelled ? null : () => setState(_cancellation.cancel),
+              child: Text(l10n.cancel),
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           _StatusBanner(status: status, run: run, started: _started),
           const SizedBox(height: 16),
+          if (_live.isNotEmpty && (run == null || run.steps.isEmpty)) ...[
+            for (final entry in _live.entries) ...[
+              Text(entry.key),
+              _Output(
+                text: entry.value.stdout.toString(),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ],
           if (run != null)
             for (final step in run.steps) ...[
               _StepCard(step: step),
@@ -150,6 +186,11 @@ class _StepCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LiveOutput {
+  final stdout = StringBuffer();
+  final stderr = StringBuffer();
 }
 
 class _Output extends StatelessWidget {

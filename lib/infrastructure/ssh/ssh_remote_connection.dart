@@ -1,15 +1,18 @@
 // Короткое SSH-соединение dartssh2. Его закрывает сценарий запуска блока.
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
 
 import '../../core/errors/app_failure.dart';
+import '../../core/logging/app_logger.dart';
+import '../../domain/connections/execution_control.dart';
 import '../../domain/connections/remote_connection.dart';
+import '../../domain/connections/resolved_credentials.dart';
 import '../../domain/entities/execution_result.dart';
 import '../../domain/entities/server_profile.dart';
 import '../logging/debug_app_logger.dart';
-import '../../core/logging/app_logger.dart';
 
 typedef HostKeyCallback = Future<bool> Function({
   required String host,
@@ -21,18 +24,18 @@ typedef HostKeyCallback = Future<bool> Function({
 class SshRemoteConnection implements RemoteConnection {
   SshRemoteConnection({
     required this.profile,
-    required this.password,
+    required this.credentials,
     required this.onVerifyHostKey,
     AppLogger? logger,
-    this.timeout = const Duration(seconds: 20),
   }) : _logger = logger ?? DebugAppLogger();
 
   final ServerProfile profile;
-  final String password;
+  final ResolvedCredentials credentials;
   final HostKeyCallback onVerifyHostKey;
-  final Duration timeout;
   final AppLogger _logger;
   SSHClient? _client;
+
+  Duration get _timeout => profile.options.connectTimeout;
 
   @override
   bool get isConnected => _client != null;
@@ -45,13 +48,14 @@ class SshRemoteConnection implements RemoteConnection {
     SSHSocket? socket;
     SSHClient? client;
     try {
-      socket = await SSHSocket.connect(profile.host, profile.port, timeout: timeout);
+      socket = await SSHSocket.connect(profile.host, profile.port, timeout: _timeout);
       client = SSHClient(
         socket,
         username: profile.username,
-        onPasswordRequest: () => password,
-        handshakeTimeout: timeout,
-        authTimeout: timeout,
+        onPasswordRequest: _passwordRequest,
+        identities: _identities(),
+        handshakeTimeout: _timeout,
+        authTimeout: _timeout,
         onVerifyHostKey: (type, fingerprint) {
           final presented = String.fromCharCodes(fingerprint);
           return onVerifyHostKey(
@@ -62,7 +66,7 @@ class SshRemoteConnection implements RemoteConnection {
           );
         },
       );
-      await client.authenticated.timeout(timeout);
+      await client.authenticated.timeout(_timeout);
       _client = client;
     } catch (error, stackTrace) {
       _logger.error(
@@ -77,14 +81,45 @@ class SshRemoteConnection implements RemoteConnection {
     }
   }
 
+  String? _passwordRequest() {
+    final credentials = this.credentials;
+    if (credentials is PasswordCredentials) {
+      return credentials.password;
+    }
+    return null;
+  }
+
+  List<SSHKeyPair>? _identities() {
+    final credentials = this.credentials;
+    if (credentials is! PrivateKeyCredentials) {
+      return null;
+    }
+    try {
+      return SSHKeyPair.fromPem(credentials.privateKeyPem, credentials.passphrase);
+    } catch (error) {
+      throw AppFailure(
+        kind: AppFailureKind.auth,
+        code: AppMessage.keyInvalid,
+        debugDetail: redactSensitive(error.toString()),
+      );
+    }
+  }
+
   @override
-  Future<ExecutionResult> execute(String command) async {
+  Future<ExecutionResult> execute(
+    String command, {
+    ExecutionObserver? observer,
+    RunCancellation? cancellation,
+  }) async {
     final client = _client;
     if (client == null) {
       throw const AppFailure(
         kind: AppFailureKind.disconnected,
         code: AppMessage.notConnected,
       );
+    }
+    if (cancellation?.isCancelled == true) {
+      throw const AppFailure(kind: AppFailureKind.cancelled, code: AppMessage.cancelled);
     }
     final startedAt = DateTime.now().toUtc();
     try {
@@ -94,7 +129,7 @@ class SshRemoteConnection implements RemoteConnection {
       final stdoutDone = Completer<void>();
       final stderrDone = Completer<void>();
       session.stdout.listen(
-        (chunk) => stdout.write(String.fromCharCodes(chunk)),
+        (chunk) => _append(stdout, chunk, OutputChannel.stdout, observer),
         onDone: () {
           if (!stdoutDone.isCompleted) stdoutDone.complete();
         },
@@ -104,7 +139,7 @@ class SshRemoteConnection implements RemoteConnection {
         cancelOnError: true,
       );
       session.stderr.listen(
-        (chunk) => stderr.write(String.fromCharCodes(chunk)),
+        (chunk) => _append(stderr, chunk, OutputChannel.stderr, observer),
         onDone: () {
           if (!stderrDone.isCompleted) stderrDone.complete();
         },
@@ -113,7 +148,7 @@ class SshRemoteConnection implements RemoteConnection {
         },
         cancelOnError: true,
       );
-      final exitCode = await session.waitForExit();
+      final exitCode = await _waitForExit(session, cancellation);
       await Future.wait([stdoutDone.future, stderrDone.future]);
       return ExecutionResult(
         command: command,
@@ -137,7 +172,28 @@ class SshRemoteConnection implements RemoteConnection {
     }
   }
 
-/// Закрывает соединение этого запуска. Повторный вызов безопасен.
+  void _append(StringBuffer buffer, List<int> chunk, OutputChannel channel, ExecutionObserver? observer) {
+    final text = utf8.decode(chunk, allowMalformed: true);
+    buffer.write(text);
+    observer?.onOutput(OutputChunk(channel: channel, text: text));
+  }
+
+  Future<int?> _waitForExit(SSHSession session, RunCancellation? cancellation) async {
+    if (cancellation == null) {
+      return session.waitForExit();
+    }
+    final cancel = cancellation.onCancel.then((_) {
+      throw const AppFailure(kind: AppFailureKind.cancelled, code: AppMessage.cancelled);
+    });
+    try {
+      return await Future.any([session.waitForExit(), cancel]);
+    } on AppFailure {
+      await disconnect();
+      rethrow;
+    }
+  }
+
+  /// Закрывает соединение этого запуска. Повторный вызов безопасен.
   @override
   Future<void> disconnect() async {
     final client = _client;
@@ -152,6 +208,7 @@ AppFailure mapSshError(Object error) {
   if (error is AppFailure) {
     return error;
   }
+  final detail = redactSensitive(error.toString());
   if (error is TimeoutException) {
     return const AppFailure(
       kind: AppFailureKind.timeout,
@@ -169,45 +226,45 @@ AppFailure mapSshError(Object error) {
     return AppFailure(
       kind: AppFailureKind.auth,
       code: AppMessage.authFailed,
-      debugDetail: error.toString(),
+      debugDetail: detail,
     );
   }
   if (error is SSHHostkeyError) {
     return AppFailure(
       kind: AppFailureKind.hostKeyRejected,
       code: AppMessage.hostKeyDenied,
-      debugDetail: error.message,
+      debugDetail: redactSensitive(error.message),
     );
   }
   if (error is SSHHandshakeError) {
     return AppFailure(
       kind: AppFailureKind.handshake,
       code: AppMessage.handshake,
-      debugDetail: error.message,
+      debugDetail: redactSensitive(error.message),
     );
   }
   if (error is SSHDisconnectError) {
     return AppFailure(
       kind: AppFailureKind.disconnected,
       code: AppMessage.disconnected,
-      debugDetail: error.message,
+      debugDetail: redactSensitive(error.message),
     );
   }
   if (error is SSHError) {
     return AppFailure(
       kind: AppFailureKind.unknown,
       code: AppMessage.sshError,
-      debugDetail: error.toString(),
+      debugDetail: detail,
     );
   }
   return AppFailure(
     kind: AppFailureKind.unknown,
     code: AppMessage.operationFailed,
-    debugDetail: error.toString(),
+    debugDetail: detail,
   );
 }
 
-AppMessage _socketCode(SocketException error) {
+String _socketCode(SocketException error) {
   final message = error.message.toLowerCase();
   if (message.contains('failed host lookup') || message.contains('name or service')) {
     return AppMessage.dnsError;
@@ -222,4 +279,11 @@ AppMessage _socketCode(SocketException error) {
     return AppMessage.networkUnreachable;
   }
   return AppMessage.unreachable;
+}
+
+String redactSensitive(String value) {
+  if (value.contains('PRIVATE KEY') || value.contains('passphrase') || value.contains('password=')) {
+    return '[redacted]';
+  }
+  return value;
 }

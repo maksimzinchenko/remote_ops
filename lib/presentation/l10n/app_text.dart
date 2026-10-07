@@ -1,62 +1,88 @@
-// Перевод кодов ошибок и названий блоков. Команды из файла не переводятся.
+// Перевод кодов ошибок и названий блоков. Неизвестный код не требует нового экрана.
 import '../../core/errors/app_failure.dart';
 import '../../domain/entities/command_script.dart';
 import '../../l10n/generated/app_localizations.dart';
 
-String failureText(AppLocalizations l10n, AppMessage code, [Map<String, String> params = const {}]) {
-  return switch (code) {
-    AppMessage.profileNotFound => l10n.failureProfileNotFound,
-    AppMessage.passwordAuthOnly => l10n.failurePasswordAuthOnly,
-    AppMessage.passwordMissing => l10n.failurePasswordMissing,
-    AppMessage.connectionFailed => l10n.failureConnectionFailed,
-    AppMessage.scriptNotFound => l10n.failureScriptNotFound,
-    AppMessage.hostKeyRejected => l10n.failureHostKeyRejected,
-    AppMessage.saveFailed => l10n.failureSaveFailed,
-    AppMessage.requiredFields => l10n.failureRequiredFields,
-    AppMessage.invalidPort => l10n.failureInvalidPort,
-    AppMessage.passwordRequired => l10n.failurePasswordRequired,
-    AppMessage.notConnected => l10n.failureNotConnected,
-    AppMessage.timeout => l10n.failureTimeout,
-    AppMessage.authFailed => l10n.failureAuthFailed,
-    AppMessage.hostKeyDenied => l10n.failureHostKeyDenied,
-    AppMessage.handshake => l10n.failureHandshake,
-    AppMessage.disconnected => l10n.failureDisconnected,
-    AppMessage.sshError => l10n.failureSshError,
-    AppMessage.operationFailed => l10n.failureOperationFailed,
-    AppMessage.dnsError => l10n.failureDns,
-    AppMessage.connectionRefused => l10n.failureRefused,
-    AppMessage.networkUnreachable => l10n.failureNetwork,
-    AppMessage.unreachable => l10n.failureUnreachable,
-    AppMessage.commandFailed => l10n.failureCommandFailed(params['name'] ?? '', params['code'] ?? '—'),
-    AppMessage.scriptInterrupted => l10n.failureScriptInterrupted,
-  };
+typedef _Text = String Function(AppLocalizations l10n, Map<String, String> params);
+
+String failureText(AppLocalizations l10n, String code, [Map<String, String> params = const {}]) {
+  final known = _failures[code];
+  if (known == null) {
+    return l10n.failureOperationFailed;
+  }
+  return known(l10n, params);
 }
 
 String scriptTitle(AppLocalizations l10n, CommandScript script) {
-  return switch (script.id) {
-    'check_status' => l10n.scriptCheckStatusName,
-    'identity' => l10n.scriptIdentityName,
-    'processes' => l10n.scriptProcessesName,
-    _ => script.name,
-  };
+  return _catalogText(l10n, script.titleKey) ?? _catalogText(l10n, script.id) ?? script.name;
 }
 
 String scriptDescription(AppLocalizations l10n, CommandScript script) {
-  return switch (script.id) {
-    'check_status' => l10n.scriptCheckStatusDescription,
-    'identity' => l10n.scriptIdentityDescription,
-    'processes' => l10n.scriptProcessesDescription,
-    _ => script.description,
-  };
+  return _catalogText(l10n, script.descriptionKey) ??
+      _catalogText(l10n, '${script.id}.description') ??
+      script.description;
 }
 
 String stepTitle(AppLocalizations l10n, String stepId, String fallback) {
-  return switch (stepId) {
-    'uptime' => l10n.stepUptime,
-    'memory' => l10n.stepMemory,
-    'disk' => l10n.stepDisk,
-    'who' => l10n.stepWho,
-    'ps' => l10n.stepPs,
-    _ => fallback,
-  };
+  return _catalogText(l10n, stepId) ?? fallback;
 }
+
+String? _catalogText(AppLocalizations l10n, String? key) {
+  if (key == null) return null;
+  return _catalog[key]?.call(l10n);
+}
+
+final _catalog = <String, String Function(AppLocalizations)>{
+  'scriptCheckStatusName': (l10n) => l10n.scriptCheckStatusName,
+  'check_status': (l10n) => l10n.scriptCheckStatusName,
+  'scriptCheckStatusDescription': (l10n) => l10n.scriptCheckStatusDescription,
+  'check_status.description': (l10n) => l10n.scriptCheckStatusDescription,
+  'scriptIdentityName': (l10n) => l10n.scriptIdentityName,
+  'identity': (l10n) => l10n.scriptIdentityName,
+  'scriptIdentityDescription': (l10n) => l10n.scriptIdentityDescription,
+  'identity.description': (l10n) => l10n.scriptIdentityDescription,
+  'scriptProcessesName': (l10n) => l10n.scriptProcessesName,
+  'processes': (l10n) => l10n.scriptProcessesName,
+  'scriptProcessesDescription': (l10n) => l10n.scriptProcessesDescription,
+  'processes.description': (l10n) => l10n.scriptProcessesDescription,
+  'stepUptime': (l10n) => l10n.stepUptime,
+  'uptime': (l10n) => l10n.stepUptime,
+  'stepMemory': (l10n) => l10n.stepMemory,
+  'memory': (l10n) => l10n.stepMemory,
+  'stepDisk': (l10n) => l10n.stepDisk,
+  'disk': (l10n) => l10n.stepDisk,
+  'stepWho': (l10n) => l10n.stepWho,
+  'who': (l10n) => l10n.stepWho,
+  'stepPs': (l10n) => l10n.stepPs,
+  'ps': (l10n) => l10n.stepPs,
+};
+
+final _failures = <String, _Text>{
+  AppMessage.profileNotFound: (l10n, _) => l10n.failureProfileNotFound,
+  AppMessage.passwordAuthOnly: (l10n, _) => l10n.failurePasswordAuthOnly,
+  AppMessage.passwordMissing: (l10n, _) => l10n.failurePasswordMissing,
+  AppMessage.connectionFailed: (l10n, _) => l10n.failureConnectionFailed,
+  AppMessage.scriptNotFound: (l10n, _) => l10n.failureScriptNotFound,
+  AppMessage.hostKeyRejected: (l10n, _) => l10n.failureHostKeyRejected,
+  AppMessage.saveFailed: (l10n, _) => l10n.failureSaveFailed,
+  AppMessage.requiredFields: (l10n, _) => l10n.failureRequiredFields,
+  AppMessage.invalidPort: (l10n, _) => l10n.failureInvalidPort,
+  AppMessage.passwordRequired: (l10n, _) => l10n.failurePasswordRequired,
+  AppMessage.notConnected: (l10n, _) => l10n.failureNotConnected,
+  AppMessage.timeout: (l10n, _) => l10n.failureTimeout,
+  AppMessage.authFailed: (l10n, _) => l10n.failureAuthFailed,
+  AppMessage.hostKeyDenied: (l10n, _) => l10n.failureHostKeyDenied,
+  AppMessage.handshake: (l10n, _) => l10n.failureHandshake,
+  AppMessage.disconnected: (l10n, _) => l10n.failureDisconnected,
+  AppMessage.sshError: (l10n, _) => l10n.failureSshError,
+  AppMessage.operationFailed: (l10n, _) => l10n.failureOperationFailed,
+  AppMessage.dnsError: (l10n, _) => l10n.failureDns,
+  AppMessage.connectionRefused: (l10n, _) => l10n.failureRefused,
+  AppMessage.networkUnreachable: (l10n, _) => l10n.failureNetwork,
+  AppMessage.unreachable: (l10n, _) => l10n.failureUnreachable,
+  AppMessage.commandFailed: (l10n, params) =>
+      l10n.failureCommandFailed(params['name'] ?? '', params['code'] ?? '—'),
+  AppMessage.scriptInterrupted: (l10n, _) => l10n.failureScriptInterrupted,
+  AppMessage.cancelled: (l10n, _) => l10n.statusCancelled,
+  AppMessage.keyInvalid: (l10n, _) => l10n.failureAuthFailed,
+};

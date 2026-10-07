@@ -4,22 +4,27 @@
     {
       "id": "check_status",
       "name": "Проверка состояния",
+      "titleKey": "scriptCheckStatusName",
       "description": "Время работы, память и диск. Файл только для чтения, в приложении не редактируется.",
+      "descriptionKey": "scriptCheckStatusDescription",
       "stopOnError": true,
       "steps": [
         {
           "id": "uptime",
           "name": "Uptime",
+          "titleKey": "stepUptime",
           "command": "uptime"
         },
         {
           "id": "memory",
           "name": "Память",
+          "titleKey": "stepMemory",
           "command": "free -m || vm_stat"
         },
         {
           "id": "disk",
           "name": "Диск",
+          "titleKey": "stepDisk",
           "command": "df -h"
         }
       ]
@@ -27,12 +32,15 @@
     {
       "id": "identity",
       "name": "Идентификация",
+      "titleKey": "scriptIdentityName",
       "description": "Пользователь, хост и система.",
+      "descriptionKey": "scriptIdentityDescription",
       "stopOnError": true,
       "steps": [
         {
           "id": "who",
           "name": "Пользователь и хост",
+          "titleKey": "stepWho",
           "command": "whoami; hostname; uname -a"
         }
       ]
@@ -40,12 +48,15 @@
     {
       "id": "processes",
       "name": "Процессы",
+      "titleKey": "scriptProcessesName",
       "description": "Первые процессы по загрузке CPU.",
+      "descriptionKey": "scriptProcessesDescription",
       "stopOnError": true,
       "steps": [
         {
           "id": "ps",
           "name": "Список процессов",
+          "titleKey": "stepPs",
           "command": "ps aux --sort=-pcpu | head -n 20"
         }
       ]

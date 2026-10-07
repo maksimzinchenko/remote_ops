@@ -30,6 +30,8 @@ class ScriptCodec {
       id: _string(json, 'id'),
       name: _string(json, 'name'),
       description: json['description'] is String ? json['description'] as String : '',
+      titleKey: _optional(json, 'titleKey'),
+      descriptionKey: _optional(json, 'descriptionKey'),
       stopOnError: json['stopOnError'] is bool ? json['stopOnError'] as bool : true,
       steps: stepsJson.map((step) {
         if (step is! Map) {
@@ -40,9 +42,18 @@ class ScriptCodec {
           id: _string(data, 'id'),
           name: _string(data, 'name'),
           command: _string(data, 'command'),
+          titleKey: _optional(data, 'titleKey'),
         );
       }).toList(),
     );
+  }
+
+  static String? _optional(Map<String, Object?> json, String key) {
+    final value = json[key];
+    if (value is! String || value.trim().isEmpty) {
+      return null;
+    }
+    return value;
   }
 
   static String _string(Map<String, Object?> json, String key) {
