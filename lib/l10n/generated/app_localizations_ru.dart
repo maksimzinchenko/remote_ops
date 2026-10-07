@@ -28,6 +28,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get save => 'Сохранить';
 
   @override
+  String get run => 'Запустить';
+
+  @override
+  String get parameters => 'Параметры';
+
+  @override
+  String get paramOptionalHint => 'необязательно';
+
+  @override
   String get saving => 'Сохранение...';
 
   @override
@@ -253,6 +262,31 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get dockerStatusRemoveUnsupported =>
       'Ошибка удаления: этот дистрибутив Linux не поддерживается.';
+
+  @override
+  String get scriptMkdirName => 'Создать каталог';
+
+  @override
+  String get scriptMkdirDescription =>
+      'Создаёт каталог. Путь обязателен, права и промежуточные каталоги необязательны.';
+
+  @override
+  String get stepMkdir => 'Создать каталог';
+
+  @override
+  String get paramPath => 'Путь';
+
+  @override
+  String get paramMode => 'Права';
+
+  @override
+  String get paramParents => 'Создать промежуточные каталоги';
+
+  @override
+  String get failureParametersRequired => 'Заполните обязательные параметры команды.';
+
+  @override
+  String failureInvalidParameter(String name) => 'Параметр «$name» должен быть числом.';
 
   @override
   String get failureProfileNotFound => 'Профиль сервера не найден.';

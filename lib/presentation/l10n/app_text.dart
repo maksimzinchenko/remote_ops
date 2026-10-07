@@ -65,7 +65,19 @@ final _catalog = <String, String Function(AppLocalizations)>{
   'scriptUninstallDockerDescription': (l10n) => l10n.scriptUninstallDockerDescription,
   'uninstall_docker.description': (l10n) => l10n.scriptUninstallDockerDescription,
   'stepUninstallDocker': (l10n) => l10n.stepUninstallDocker,
+  'scriptMkdirName': (l10n) => l10n.scriptMkdirName,
+  'mkdir': (l10n) => l10n.scriptMkdirName,
+  'scriptMkdirDescription': (l10n) => l10n.scriptMkdirDescription,
+  'mkdir.description': (l10n) => l10n.scriptMkdirDescription,
+  'stepMkdir': (l10n) => l10n.stepMkdir,
+  'paramPath': (l10n) => l10n.paramPath,
+  'paramMode': (l10n) => l10n.paramMode,
+  'paramParents': (l10n) => l10n.paramParents,
 };
+
+String parameterLabel(AppLocalizations l10n, CommandParameter parameter) {
+  return _catalogText(l10n, parameter.labelKey ?? parameter.id) ?? parameter.name;
+}
 
 String? remoteOpsStatus(String stdout) {
   for (final line in stdout.split('\n')) {
@@ -124,4 +136,6 @@ final _failures = <String, _Text>{
   AppMessage.scriptInterrupted: (l10n, _) => l10n.failureScriptInterrupted,
   AppMessage.cancelled: (l10n, _) => l10n.statusCancelled,
   AppMessage.keyInvalid: (l10n, _) => l10n.failureAuthFailed,
+  AppMessage.parametersRequired: (l10n, _) => l10n.failureParametersRequired,
+  AppMessage.invalidParameter: (l10n, params) => l10n.failureInvalidParameter(params['name'] ?? ''),
 };

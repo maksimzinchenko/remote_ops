@@ -33,6 +33,7 @@ class ScriptCodec {
       titleKey: _optional(json, 'titleKey'),
       descriptionKey: _optional(json, 'descriptionKey'),
       stopOnError: json['stopOnError'] is bool ? json['stopOnError'] as bool : true,
+      parameters: _parameters(json['parameters']),
       steps: stepsJson.map((step) {
         if (step is! Map) {
           throw const FormatException('command step must be an object');
@@ -46,6 +47,38 @@ class ScriptCodec {
         );
       }).toList(),
     );
+  }
+
+  static List<CommandParameter> _parameters(Object? raw) {
+    if (raw == null) return const [];
+    if (raw is! List) {
+      throw const FormatException('script parameters must be a list');
+    }
+    return raw.map((item) {
+      if (item is! Map) {
+        throw const FormatException('command parameter must be an object');
+      }
+      final data = Map<String, Object?>.from(item);
+      return CommandParameter(
+        id: _string(data, 'id'),
+        name: _string(data, 'name'),
+        labelKey: _optional(data, 'labelKey'),
+        type: _type(data['type']),
+        required: data['required'] == true,
+        defaultValue: _optional(data, 'defaultValue'),
+        trueValue: _optional(data, 'trueValue'),
+        prefix: _optional(data, 'prefix'),
+      );
+    }).toList();
+  }
+
+  static CommandParameterType _type(Object? raw) {
+    return switch (raw) {
+      'text' => CommandParameterType.text,
+      'number' => CommandParameterType.number,
+      'bool' => CommandParameterType.boolean,
+      _ => throw const FormatException('parameter type must be text, number or bool'),
+    };
   }
 
   static String? _optional(Map<String, Object?> json, String key) {

@@ -134,6 +134,24 @@ abstract class AppLocalizations {
   /// **'Save'**
   String get save;
 
+  /// No description provided for @run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get run;
+
+  /// No description provided for @parameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters'**
+  String get parameters;
+
+  /// No description provided for @paramOptionalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'optional'**
+  String get paramOptionalHint;
+
   /// No description provided for @saving.
   ///
   /// In en, this message translates to:
@@ -535,6 +553,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removal failed: this Linux distribution is not supported.'**
   String get dockerStatusRemoveUnsupported;
+
+  /// No description provided for @scriptMkdirName.
+  ///
+  /// In en, this message translates to:
+  /// **'Create directory'**
+  String get scriptMkdirName;
+
+  /// No description provided for @scriptMkdirDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates a directory. Path is required; mode and parent directories are optional.'**
+  String get scriptMkdirDescription;
+
+  /// No description provided for @stepMkdir.
+  ///
+  /// In en, this message translates to:
+  /// **'Create directory'**
+  String get stepMkdir;
+
+  /// No description provided for @paramPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path'**
+  String get paramPath;
+
+  /// No description provided for @paramMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get paramMode;
+
+  /// No description provided for @paramParents.
+  ///
+  /// In en, this message translates to:
+  /// **'Create parent directories'**
+  String get paramParents;
+
+  /// No description provided for @failureParametersRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the required command parameters.'**
+  String get failureParametersRequired;
+
+  /// No description provided for @failureInvalidParameter.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameter "{name}" must be a number.'**
+  String failureInvalidParameter(String name);
 
   /// No description provided for @failureProfileNotFound.
   ///

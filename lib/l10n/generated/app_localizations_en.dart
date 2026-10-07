@@ -28,6 +28,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get save => 'Save';
 
   @override
+  String get run => 'Run';
+
+  @override
+  String get parameters => 'Parameters';
+
+  @override
+  String get paramOptionalHint => 'optional';
+
+  @override
   String get saving => 'Saving...';
 
   @override
@@ -254,6 +263,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dockerStatusRemoveUnsupported =>
       'Removal failed: this Linux distribution is not supported.';
+
+  @override
+  String get scriptMkdirName => 'Create directory';
+
+  @override
+  String get scriptMkdirDescription =>
+      'Creates a directory. Path is required; mode and parent directories are optional.';
+
+  @override
+  String get stepMkdir => 'Create directory';
+
+  @override
+  String get paramPath => 'Path';
+
+  @override
+  String get paramMode => 'Mode';
+
+  @override
+  String get paramParents => 'Create parent directories';
+
+  @override
+  String get failureParametersRequired => 'Fill in the required command parameters.';
+
+  @override
+  String failureInvalidParameter(String name) => 'Parameter "$name" must be a number.';
 
   @override
   String get failureProfileNotFound => 'Server profile not found.';
