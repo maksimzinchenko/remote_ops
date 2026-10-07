@@ -191,6 +191,71 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stepPs => 'Process list';
 
   @override
+  String get scriptInstallDockerName => 'Install Docker';
+
+  @override
+  String get scriptInstallDockerDescription =>
+      'Installs Docker Engine on Linux when it is missing. An existing Docker is left as is.';
+
+  @override
+  String get stepInstallDocker => 'Docker Engine';
+
+  @override
+  String get dockerStatusInstalled => 'Installed successfully';
+
+  @override
+  String get dockerStatusAlready => 'Already on the server';
+
+  @override
+  String get dockerStatusFailed =>
+      'Installation failed. Details are in the output below.';
+
+  @override
+  String get dockerStatusNeedRoot =>
+      'Installation failed: root or passwordless sudo is required.';
+
+  @override
+  String get dockerStatusUnsupported =>
+      'Installation failed: this Linux distribution is not supported.';
+
+  @override
+  String get dockerStatusNoDaemon =>
+      'Installation failed: packages are present, but the Docker daemon is not responding.';
+
+  @override
+  String get dockerStatusNetwork =>
+      'Installation failed: the installer could not be downloaded.';
+
+  @override
+  String get scriptUninstallDockerName => 'Remove Docker';
+
+  @override
+  String get scriptUninstallDockerDescription =>
+      'Stops Docker, deletes images, volumes and installer files, then removes the packages.';
+
+  @override
+  String get stepUninstallDocker => 'Remove Docker Engine';
+
+  @override
+  String get dockerStatusRemoved =>
+      'Removed. Images, volumes and temporary files were deleted.';
+
+  @override
+  String get dockerStatusNotInstalled => 'Docker is not on the server.';
+
+  @override
+  String get dockerStatusRemoveFailed =>
+      'Removal failed. Details are in the output below.';
+
+  @override
+  String get dockerStatusRemoveNeedRoot =>
+      'Removal failed: root or passwordless sudo is required.';
+
+  @override
+  String get dockerStatusRemoveUnsupported =>
+      'Removal failed: this Linux distribution is not supported.';
+
+  @override
   String get failureProfileNotFound => 'Server profile not found.';
 
   @override

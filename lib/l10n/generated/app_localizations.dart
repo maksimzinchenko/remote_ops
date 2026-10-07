@@ -428,6 +428,114 @@ abstract class AppLocalizations {
   /// **'Process list'**
   String get stepPs;
 
+  /// No description provided for @scriptInstallDockerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Docker'**
+  String get scriptInstallDockerName;
+
+  /// No description provided for @scriptInstallDockerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Installs Docker Engine on Linux when it is missing. An existing Docker is left as is.'**
+  String get scriptInstallDockerDescription;
+
+  /// No description provided for @stepInstallDocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Docker Engine'**
+  String get stepInstallDocker;
+
+  /// No description provided for @dockerStatusInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed successfully'**
+  String get dockerStatusInstalled;
+
+  /// No description provided for @dockerStatusAlready.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on the server'**
+  String get dockerStatusAlready;
+
+  /// No description provided for @dockerStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed. Details are in the output below.'**
+  String get dockerStatusFailed;
+
+  /// No description provided for @dockerStatusNeedRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: root or passwordless sudo is required.'**
+  String get dockerStatusNeedRoot;
+
+  /// No description provided for @dockerStatusUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: this Linux distribution is not supported.'**
+  String get dockerStatusUnsupported;
+
+  /// No description provided for @dockerStatusNoDaemon.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: packages are present, but the Docker daemon is not responding.'**
+  String get dockerStatusNoDaemon;
+
+  /// No description provided for @dockerStatusNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Installation failed: the installer could not be downloaded.'**
+  String get dockerStatusNetwork;
+
+  /// No description provided for @scriptUninstallDockerName.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Docker'**
+  String get scriptUninstallDockerName;
+
+  /// No description provided for @scriptUninstallDockerDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Stops Docker, deletes images, volumes and installer files, then removes the packages.'**
+  String get scriptUninstallDockerDescription;
+
+  /// No description provided for @stepUninstallDocker.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Docker Engine'**
+  String get stepUninstallDocker;
+
+  /// No description provided for @dockerStatusRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed. Images, volumes and temporary files were deleted.'**
+  String get dockerStatusRemoved;
+
+  /// No description provided for @dockerStatusNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Docker is not on the server.'**
+  String get dockerStatusNotInstalled;
+
+  /// No description provided for @dockerStatusRemoveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed. Details are in the output below.'**
+  String get dockerStatusRemoveFailed;
+
+  /// No description provided for @dockerStatusRemoveNeedRoot.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed: root or passwordless sudo is required.'**
+  String get dockerStatusRemoveNeedRoot;
+
+  /// No description provided for @dockerStatusRemoveUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Removal failed: this Linux distribution is not supported.'**
+  String get dockerStatusRemoveUnsupported;
+
   /// No description provided for @failureProfileNotFound.
   ///
   /// In en, this message translates to:
